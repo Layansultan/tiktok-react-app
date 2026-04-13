@@ -1,0 +1,16 @@
+export const C = {
+  black:  "#000000",
+  dark:   "#121212",
+  surf:   "#1e1e1e",
+  surf2:  "#2a2a2a",
+  border: "#333333",
+  white:  "#ffffff",
+  grey:   "#aaaaaa",
+  grey2:  "#666666",
+  red:    "#fe2c55",
+  teal:   "#69c9d0",
+  blue:   "#2D5BE3",
+  green:  "#25d366",
+  amber:  "#f59e0b",
+  purple: "#9b59b6",
+};
