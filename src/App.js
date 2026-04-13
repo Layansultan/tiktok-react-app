@@ -96,7 +96,7 @@ export default function App() {
                   onOptions={() => setProfileFlow("options")}
                 />
                 {["options","privacy","saved"].includes(profileFlow) && (
-                  <div onClick={() => setProfileFlow("video")} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 48 }} />
+                  <div data-testid="profile-backdrop" onClick={() => setProfileFlow("video")} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 48 }} />
                 )}
               </>
             )}
@@ -115,7 +115,7 @@ export default function App() {
 
         {/* ── GLOBAL SHARE FLOW (works from home + friends tabs) ── */}
         {shareFlow && (
-          <div onClick={closeAll} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 28 }} />
+          <div data-testid="share-backdrop" onClick={closeAll} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 28 }} />
         )}
         {shareFlow === "main" && (
           <MainShareSheet

@@ -20,13 +20,24 @@ export default function StitchClipSelector({ onClose, onNext, video }) {
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>@{video.creator.username}'s video</div>
       </div>
 
+      {/* consent banner */}
+      <div style={{ margin: "0 12px 6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 10, padding: "8px 12px", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+          <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#f59e0b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "black", fontWeight: 700 }}>!</div>
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: "white" }}>Before you stitch</span>
+        </div>
+        <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
+          A Stitch clips up to <strong style={{ color: "white" }}>5 seconds</strong> from this post into your new video. The original creator is credited.
+        </div>
+      </div>
+
       {/* filmstrip scrubber */}
       <div style={{ background: "#111", padding: "12px 0 8px", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", padding: "0 8px", gap: 2, overflowX: "auto", scrollbarWidth: "none" }}>
           <span style={{ fontSize: 16, color: "rgba(255,255,255,0.4)", flexShrink: 0 }}>‹</span>
           <div style={{ flex: 1, display: "flex", gap: 2, position: "relative" }}>
             {frames.map(f => (
-              <div key={f} onClick={() => setSelected(f)} style={{
+              <div key={f} data-testid={`frame-${f}`} onClick={() => setSelected(f)} style={{
                 flex: 1, height: 52, borderRadius: 3, flexShrink: 0,
                 background: `linear-gradient(135deg, hsl(${f*20},40%,15%), hsl(${f*20+40},50%,25%))`,
                 border: f <= selected ? `2px solid white` : "2px solid transparent",
