@@ -1,9 +1,11 @@
-import { C } from "../../constants";
+import { useLikes } from "../../hooks/useLikes";
 
 const SLIDE_H = 748;
 
-function FriendVideoSlide({ video, onShare }) {
-  const { creator, caption, sound, likes, comments, shares, background } = video;
+function FriendVideoSlide({ video, onShare, user }) {
+  const { creator, caption, sound, comments, shares, background } = video;
+  const { liked, count, toggle } = useLikes(video.id, video.likes, user);
+
   return (
     <div style={{
       height: SLIDE_H, position: "relative", background,
@@ -20,9 +22,11 @@ function FriendVideoSlide({ video, onShare }) {
           {creator.initials}
         </div>
         {/* likes */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-          <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19 }}>♥</div>
-          <span style={{ fontSize: 9, color: "white", fontWeight: 600 }}>{likes}</span>
+        <div onClick={(e) => { e.stopPropagation(); toggle(); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}>
+          <div style={{ width: 38, height: 38, borderRadius: "50%", background: liked ? "rgba(254,44,85,0.25)" : "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, transition: "background 0.15s" }}>
+            <span style={{ color: liked ? "#fe2c55" : "white" }}>♥</span>
+          </div>
+          <span style={{ fontSize: 9, color: liked ? "#fe2c55" : "white", fontWeight: 600 }}>{count}</span>
         </div>
         {/* comments */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
@@ -40,7 +44,6 @@ function FriendVideoSlide({ video, onShare }) {
       <div style={{ position: "absolute", bottom: 22, left: 14, right: 60, zIndex: 10, pointerEvents: "none" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: "white" }}>@{creator.username}</span>
-          {/* Friends badge — same as real TikTok */}
           <div style={{
             display: "flex", alignItems: "center", gap: 3,
             background: "rgba(255,255,255,0.18)", borderRadius: 20,
@@ -60,7 +63,7 @@ function FriendVideoSlide({ video, onShare }) {
   );
 }
 
-export default function FriendsFeed({ videos, onShare }) {
+export default function FriendsFeed({ videos, onShare, user }) {
   return (
     <>
       {/* Scrollable feed */}
@@ -70,7 +73,7 @@ export default function FriendsFeed({ videos, onShare }) {
         WebkitOverflowScrolling: "touch",
       }}>
         {videos.map(video => (
-          <FriendVideoSlide key={video.id} video={video} onShare={onShare} />
+          <FriendVideoSlide key={video.id} video={video} onShare={onShare} user={user} />
         ))}
       </div>
 

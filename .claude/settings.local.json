@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(CI=true npm run build)",
+      "Bash(npm run:*)",
+      "Bash(grep \"src\\\\\\\\\")",
+      "Bash(grep -E \"\\\\.js$|no-unused.*'C'\")",
+      "Bash(sed -i '1d' src/components/VideoFullScreen.js)",
+      "Bash(sed -i '1{/^import { C }/d}' src/components/feed/FYPFeed.js)",
+      "Bash(sed -i '1{/^import { C }/d}' src/components/friends/FriendsFeed.js)",
+      "Bash(grep -E \"\\\\.js$\")",
+      "Bash(CI=true npm test -- --watchAll=false)"
+    ]
+  }
+}

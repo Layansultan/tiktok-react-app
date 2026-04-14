@@ -1,5 +1,4 @@
 import { C } from "../../constants";
-import { INBOX_ITEMS } from "../../data/mockData";
 
 const TYPE_ICON = {
   follow:  "👤",
@@ -21,16 +20,16 @@ const TYPE_COLOR = {
   system:  C.green,
 };
 
-export default function InboxPage() {
-  const unread = INBOX_ITEMS.filter(i => !i.read);
-  const read   = INBOX_ITEMS.filter(i =>  i.read);
+export default function InboxPage({ items = [], onMarkAllRead, user }) {
+  const unread = items.filter(i => !i.read);
+  const read   = items.filter(i =>  i.read);
 
   return (
     <div style={{ position: "absolute", top: 0, bottom: 64, left: 0, right: 0, overflowY: "auto", background: "#000" }}>
       {/* header */}
       <div style={{ padding: "44px 16px 10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: 17, fontWeight: 700, color: "white" }}>Inbox</span>
-        <span style={{ fontSize: 13, color: C.grey, cursor: "pointer" }}>Mark all read</span>
+        <span onClick={onMarkAllRead} style={{ fontSize: 13, color: C.grey, cursor: "pointer" }}>Mark all read</span>
       </div>
 
       {/* unread section */}

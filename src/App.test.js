@@ -2,19 +2,45 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 
+// ─── Firebase mocks ────────────────────────────────────────────
+// Hooks that talk to Firebase are mocked so tests run offline.
+jest.mock('./hooks/useAuth', () => ({
+  useAuth: () => ({ user: null, signIn: jest.fn(), logOut: jest.fn(), loading: false }),
+}));
+jest.mock('./hooks/useInbox', () => {
+  const { INBOX_ITEMS } = require('./data/mockData');
+  return { useInbox: () => ({ items: INBOX_ITEMS, markAllRead: jest.fn() }) };
+});
+jest.mock('./hooks/useReposts', () => ({
+  useReposts: () => ({
+    reposts: [],
+    addRepost: jest.fn(),
+    removeRepost: jest.fn(),
+    hasReposted: () => false,
+  }),
+}));
+jest.mock('./hooks/useUserLikes', () => ({
+  useUserLikes: () => [],
+}));
+jest.mock('./hooks/useLikes', () => ({
+  useLikes: (_id, initialCount) => ({ liked: false, count: initialCount, toggle: jest.fn() }),
+  formatCount: (n) => (typeof n === 'string' ? n : String(n)),
+}));
+
 // ─── helpers ──────────────────────────────────────────────────
 const tap = (el) => userEvent.click(el);
 
+/* Dismiss the login screen (user: null → guest mode) */
+const skipLogin = () => tap(screen.getByText('Continue as guest'));
+
 /* Open the share sheet from the FYP action bar */
 const openShareSheet = () => {
-  const shareBtn = screen.getAllByText('↗')[0];
-  tap(shareBtn);
+  tap(screen.getAllByText('↗')[0]);
 };
 
-/* Navigate to profile and open the first video (by its view-count label) */
+/* Navigate to profile and open the first video */
 const openProfileVideo = () => {
   tap(screen.getByText('Profile'));
-  // Grid cells render "▶ 2.1M" — click the first one
   tap(screen.getByText('▶ 2.1M'));
 };
 
@@ -22,8 +48,6 @@ const openProfileVideo = () => {
 const openPrivacySettings = () => {
   openProfileVideo();
   tap(screen.getByText('•••'));
-  // VideoOptionsSheet has two "Privacy" nodes: the icon label (span) and
-  // the <strong> inside the hint banner. The first match is the tappable label.
   tap(screen.getAllByText('Privacy')[0]);
 };
 
@@ -40,17 +64,45 @@ describe('App — smoke', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
+describe('Login screen', () => {
+  it('shows the login screen on first load when not signed in', () => {
+    render(<App />);
+    expect(screen.getByText('Sign in to like, repost, and get notified')).toBeInTheDocument();
+  });
+
+  it('shows Continue with Google button', () => {
+    render(<App />);
+    expect(screen.getByText('Continue with Google')).toBeInTheDocument();
+  });
+
+  it('shows Continue as guest button', () => {
+    render(<App />);
+    expect(screen.getByText('Continue as guest')).toBeInTheDocument();
+  });
+
+  it('Continue as guest dismisses the login screen', () => {
+    render(<App />);
+    tap(screen.getByText('Continue as guest'));
+    expect(screen.queryByText('Continue as guest')).not.toBeInTheDocument();
+  });
+
+  it('FYP feed is accessible after skipping login', () => {
+    render(<App />);
+    skipLogin();
+    expect(screen.getByText('For you')).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────
 describe('Bottom navigation', () => {
   it('starts on the home / FYP tab', () => {
     render(<App />);
-    // FYP top nav label is visible
     expect(screen.getByText('For you')).toBeInTheDocument();
   });
 
   it('switches to Friends tab', () => {
     render(<App />);
     tap(screen.getByText('Friends'));
-    // Friends feed header
     expect(screen.getAllByText('Friends').length).toBeGreaterThan(0);
   });
 
@@ -100,7 +152,6 @@ describe('Share flow — main sheet', () => {
   it('tapping the backdrop closes the sheet', () => {
     render(<App />);
     openShareSheet();
-    // the dim overlay is a sibling div behind the sheet
     const backdrop = document.querySelector('[data-testid="share-backdrop"]');
     tap(backdrop);
     expect(screen.queryByText('Send to')).not.toBeInTheDocument();
@@ -116,37 +167,24 @@ describe('Share flow — main sheet', () => {
 
 // ─────────────────────────────────────────────────────────────
 describe('Share flow — Repost', () => {
-  const goToRepostSheet = () => {
+  it('tapping Repost immediately shows the reposted toast', () => {
     render(<App />);
     openShareSheet();
     tap(screen.getAllByText('Repost')[0]);
-  };
-
-  it('main sheet Repost button opens RepostSheet', () => {
-    goToRepostSheet();
-    expect(screen.getByText(/allows reposts/i)).toBeInTheDocument();
-  });
-
-  it('RepostSheet shows the first FYP video creator username', () => {
-    goToRepostSheet();
-    // First FYP video is @tomharvey
-    expect(screen.getByText(/@tomharvey allows reposts/i)).toBeInTheDocument();
-  });
-
-  it('tapping Repost confirms and shows the toast', () => {
-    goToRepostSheet();
-    // The red "Repost" confirm button inside the consent row
-    const repostBtns = screen.getAllByText('Repost');
-    // Last one is the inline confirm button
-    tap(repostBtns[repostBtns.length - 1]);
     expect(screen.getByText('Reposted!')).toBeInTheDocument();
+  });
+
+  it('toast says added to followers feeds', () => {
+    render(<App />);
+    openShareSheet();
+    tap(screen.getAllByText('Repost')[0]);
     expect(screen.getByText(/added to your followers' feeds/i)).toBeInTheDocument();
   });
 
   it('tapping ✕ on toast closes it', () => {
-    goToRepostSheet();
-    const repostBtns = screen.getAllByText('Repost');
-    tap(repostBtns[repostBtns.length - 1]);
+    render(<App />);
+    openShareSheet();
+    tap(screen.getAllByText('Repost')[0]);
     tap(screen.getByText('✕'));
     expect(screen.queryByText('Reposted!')).not.toBeInTheDocument();
   });
@@ -248,7 +286,7 @@ describe('Share flow — Stitch', () => {
     goToStitchClip();
     tap(screen.getByText('Next'));
     const bangs = screen.getAllByText('!');
-    tap(bangs[bangs.length - 1]); // the info ! button
+    tap(bangs[bangs.length - 1]);
     expect(screen.getByText('About Stitching')).toBeInTheDocument();
     expect(screen.getByText(/embedding another's content/i)).toBeInTheDocument();
   });
@@ -266,13 +304,12 @@ describe('Share flow — Stitch', () => {
 
 // ─────────────────────────────────────────────────────────────
 describe('Share flow — creator changes per video', () => {
-  it('share sheet from Friends tab shows that video\'s creator', () => {
+  it("share sheet from Friends tab uses that video's creator in Duet screen", () => {
     render(<App />);
     tap(screen.getByText('Friends'));
-    const shareBtn = screen.getAllByText('↗')[0];
-    tap(shareBtn);
-    tap(screen.getAllByText('Repost')[0]);
-    expect(screen.getByText(/@mia.designs allows reposts/i)).toBeInTheDocument();
+    tap(screen.getAllByText('↗')[0]);
+    tap(screen.getAllByText('Duet')[0]);
+    expect(screen.getByText(/@mia.designs's/i)).toBeInTheDocument();
   });
 });
 
@@ -280,14 +317,12 @@ describe('Share flow — creator changes per video', () => {
 describe('FYP feed — Following / For You tabs', () => {
   it('shows For You tab selected by default', () => {
     render(<App />);
-    // First FYP video creator is tomharvey
     expect(screen.getByText('@tomharvey')).toBeInTheDocument();
   });
 
   it('Following tab shows following-feed videos', () => {
     render(<App />);
     tap(screen.getByText('Following'));
-    // First following video is sarahcooks with a different caption
     expect(screen.getByText(/new series every Sunday/i)).toBeInTheDocument();
   });
 
@@ -301,7 +336,6 @@ describe('FYP feed — Following / For You tabs', () => {
   it('Following feed shows multiple different creators', () => {
     render(<App />);
     tap(screen.getByText('Following'));
-    // All three following creators should be rendered (scroll-snap renders all slides)
     expect(screen.getByText('@sarahcooks')).toBeInTheDocument();
     expect(screen.getByText('@devwithmike')).toBeInTheDocument();
     expect(screen.getByText('@zeynep.art')).toBeInTheDocument();
@@ -318,6 +352,30 @@ describe('FYP feed — Following / For You tabs', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
+describe('FYP feed — likes UI', () => {
+  it('each video slide renders a heart button', () => {
+    render(<App />);
+    const hearts = screen.getAllByText('♥');
+    expect(hearts.length).toBeGreaterThan(0);
+  });
+
+  it('like counts come from mock video data', () => {
+    render(<App />);
+    expect(screen.getByText('3.1M')).toBeInTheDocument();
+    expect(screen.getByText('892K')).toBeInTheDocument();
+  });
+
+  it('heart is not red when not liked (mock returns liked: false)', () => {
+    render(<App />);
+    // All hearts in FYP should be white (not red) since mock returns liked: false
+    const hearts = screen.getAllByText('♥');
+    hearts.forEach(h => {
+      expect(h).not.toHaveStyle('color: #fe2c55');
+    });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────
 describe('Friends feed', () => {
   const goToFriends = () => {
     render(<App />);
@@ -326,9 +384,7 @@ describe('Friends feed', () => {
 
   it('shows the Friends heading in the top nav', () => {
     goToFriends();
-    // The fixed top-nav "Friends" label
-    const headings = screen.getAllByText('Friends');
-    expect(headings.length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Friends').length).toBeGreaterThan(0);
   });
 
   it('renders all friends video creators', () => {
@@ -341,9 +397,7 @@ describe('Friends feed', () => {
 
   it('every video has a Friends badge', () => {
     goToFriends();
-    // Each slide renders a Friends pill — getAllByText finds all of them
     const badges = screen.getAllByText('Friends');
-    // 4 videos + 1 top-nav heading = at least 4 badge instances
     expect(badges.length).toBeGreaterThanOrEqual(4);
   });
 
@@ -381,7 +435,6 @@ describe('Inbox page', () => {
 
   it('shows the unread count badge', () => {
     goToInbox();
-    // 3 unread items in mock data → "New · 3"
     expect(screen.getByText(/new · 3/i)).toBeInTheDocument();
   });
 
@@ -458,6 +511,11 @@ describe('Profile page', () => {
     expect(screen.getByText('Edit profile')).toBeInTheDocument();
   });
 
+  it('shows Sign in button when logged out', () => {
+    goToProfile();
+    expect(screen.getByText('Sign in')).toBeInTheDocument();
+  });
+
   it('renders all six video grid entries by view count', () => {
     goToProfile();
     expect(screen.getByText('▶ 2.1M')).toBeInTheDocument();
@@ -472,14 +530,7 @@ describe('Profile page', () => {
     goToProfile();
     tap(screen.getByText('▶ 2.1M'));
     expect(screen.getByText('Your video')).toBeInTheDocument();
-    // title is rendered inside VideoFullScreen
     expect(screen.getByText('Travel vlog pt.1')).toBeInTheDocument();
-  });
-
-  it('full-screen view shows view count', () => {
-    goToProfile();
-    tap(screen.getByText('▶ 2.1M'));
-    expect(screen.getByText(/2\.1M views/i)).toBeInTheDocument();
   });
 
   it('back arrow returns to profile grid', () => {
@@ -501,6 +552,80 @@ describe('Profile page', () => {
     tap(screen.getByText('▶ 2.1M'));
     tap(screen.getByText('‹'));
     expect(screen.getByText('Home')).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────
+describe('Profile tabs', () => {
+  const goToProfile = () => {
+    render(<App />);
+    tap(screen.getByText('Profile'));
+  };
+
+  it('shows Videos, Reposts and Liked tabs', () => {
+    goToProfile();
+    expect(screen.getByText('⊞ Videos')).toBeInTheDocument();
+    expect(screen.getByText('🔁 Reposts')).toBeInTheDocument();
+    expect(screen.getByText('♥ Liked')).toBeInTheDocument();
+  });
+
+  it('Videos tab is selected by default and shows the grid', () => {
+    goToProfile();
+    expect(screen.getByText('▶ 2.1M')).toBeInTheDocument();
+  });
+
+  it('Reposts tab shows empty state when no reposts', () => {
+    goToProfile();
+    tap(screen.getByText('🔁 Reposts'));
+    expect(screen.getByText('No reposts yet')).toBeInTheDocument();
+    expect(screen.getByText(/videos you repost will appear here/i)).toBeInTheDocument();
+  });
+
+  it('Reposts tab mentions original creator credit', () => {
+    goToProfile();
+    tap(screen.getByText('🔁 Reposts'));
+    expect(screen.getByText(/original creator is always credited/i)).toBeInTheDocument();
+  });
+
+  it('Liked tab shows empty state when no likes', () => {
+    goToProfile();
+    tap(screen.getByText('♥ Liked'));
+    expect(screen.getByText('No liked videos yet')).toBeInTheDocument();
+    expect(screen.getByText(/videos you like will appear here/i)).toBeInTheDocument();
+  });
+
+  it('switching between tabs does not show bottom nav issues', () => {
+    goToProfile();
+    tap(screen.getByText('🔁 Reposts'));
+    tap(screen.getByText('⊞ Videos'));
+    expect(screen.getByText('▶ 2.1M')).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────
+describe('VideoFullScreen — data accuracy', () => {
+  it('shows correct likes count for a profile video', () => {
+    render(<App />);
+    tap(screen.getByText('Profile'));
+    tap(screen.getByText('▶ 2.1M'));
+    // Profile video 1 has likes: "180K"
+    expect(screen.getByText('180K')).toBeInTheDocument();
+  });
+
+  it('shows correct comments count for a profile video', () => {
+    render(<App />);
+    tap(screen.getByText('Profile'));
+    tap(screen.getByText('▶ 2.1M'));
+    // Profile video 1 has comments: "4.2K"
+    expect(screen.getByText('4.2K')).toBeInTheDocument();
+  });
+
+  it('shows correct title and view count in the insights bar', () => {
+    render(<App />);
+    tap(screen.getByText('Profile'));
+    tap(screen.getByText('▶ 2.1M'));
+    expect(screen.getByText(/2\.1M views/i)).toBeInTheDocument();
+    expect(screen.getByText('Travel vlog pt.1')).toBeInTheDocument();
   });
 });
 
@@ -580,12 +705,10 @@ describe('PrivacySettingsSheet', () => {
     expect(screen.getByText(/embed a clip in their posts/i)).toBeInTheDocument();
   });
 
-  it('selecting Everyone audience changes selection', () => {
+  it('selecting Everyone reflects in the saved sheet', () => {
     render(<App />);
     openPrivacySettings();
     tap(screen.getByText('Everyone'));
-    // After clicking Everyone the radio for that row should be filled (red background)
-    // We verify by re-clicking Save and checking the confirmation reflects "Everyone"
     tap(screen.getByText('Save settings'));
     expect(screen.getByText(/audience: everyone/i)).toBeInTheDocument();
   });
@@ -674,7 +797,6 @@ describe('PrivacySavedSheet', () => {
     tap(screen.getByText('Done'));
     expect(screen.queryByText('Preferences saved')).not.toBeInTheDocument();
     expect(screen.getByText('@layan')).toBeInTheDocument();
-    // bottom nav should be back
     expect(screen.getByText('Home')).toBeInTheDocument();
   });
 });
@@ -694,9 +816,6 @@ describe('StitchClipSelector — filmstrip interaction', () => {
 
   it('tapping a lower frame updates the selection label', () => {
     openClipSelector();
-    // Each frame is a div; find by role or use querySelectorAll
-    // Frames are rendered as numbered children — click the filmstrip area
-    // The frames don't have accessible text, so target the container
     tap(document.querySelector('[data-testid="frame-2"]'));
     expect(screen.getByText('2.0s selected')).toBeInTheDocument();
   });
@@ -730,8 +849,6 @@ describe('StitchRecordScreen — duration selector', () => {
   it('switching to 60s duration is reflected', () => {
     openRecordScreen();
     tap(screen.getByText('60s'));
-    // 60s should now have the white pill background (it becomes selected)
-    // We verify it stays in the document (it was always there; testing it's tappable)
     expect(screen.getByText('60s')).toBeInTheDocument();
   });
 
@@ -743,20 +860,19 @@ describe('StitchRecordScreen — duration selector', () => {
 
 // ─────────────────────────────────────────────────────────────
 describe('Consent cues — presence audit', () => {
-  // These tests act as a lightweight compliance check — verifying
-  // that every consent-relevant surface actually shows its cue.
-
   it('MainShareSheet always shows the consent banner', () => {
     render(<App />);
     openShareSheet();
     expect(screen.getByText(/may reach audiences beyond the original context/i)).toBeInTheDocument();
   });
 
-  it('RepostSheet shows light cue with creator username', () => {
+  it('MainShareSheet consent banner covers Repost, Duet and Stitch', () => {
     render(<App />);
     openShareSheet();
-    tap(screen.getAllByText('Repost')[0]);
-    expect(screen.getByText(/@tomharvey allows reposts/i)).toBeInTheDocument();
+    const banner = screen.getByText(/may reach audiences beyond the original context/i).closest('div');
+    expect(within(banner).getByText('Repost')).toBeInTheDocument();
+    expect(within(banner).getByText('Duet')).toBeInTheDocument();
+    expect(within(banner).getByText('Stitch')).toBeInTheDocument();
   });
 
   it('RepostInfoPanel explains audience expansion', () => {
@@ -782,7 +898,7 @@ describe('Consent cues — presence audit', () => {
     expect(screen.getByText(/cannot remove your duet/i)).toBeInTheDocument();
   });
 
-  it('StitchSheet strong cue warns before stitching', () => {
+  it('StitchClipSelector strong cue warns before stitching', () => {
     render(<App />);
     openShareSheet();
     tap(screen.getAllByText('Stitch')[0]);

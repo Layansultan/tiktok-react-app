@@ -2,7 +2,7 @@ import { C } from "../constants";
 import { CONTACTS } from "../data/mockData";
 import { Sheet, Handle, Divider } from "./common";
 
-export default function MainShareSheet({ onClose, onRepost, onDuet, onStitch, onInfo }) {
+export default function MainShareSheet({ onClose, onRepost, onDuet, onStitch, onInfo, alreadyReposted }) {
   return (
     <Sheet height={460}>
       <Handle />
@@ -33,9 +33,9 @@ export default function MainShareSheet({ onClose, onRepost, onDuet, onStitch, on
       {/* row 2 — repost highlighted */}
       <div style={{ display: "flex", overflowX: "auto", padding: "10px 10px", gap: 4, scrollbarWidth: "none" }}>
         <div onClick={onRepost} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, minWidth: 52, position: "relative", cursor: "pointer" }}>
-          <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.amber, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, boxShadow: `0 0 0 2px ${C.amber}, 0 0 10px rgba(245,166,35,0.5)` }}>🔁</div>
-          <span style={{ fontSize: 8, color: C.amber, fontWeight: 700 }}>Repost</span>
-          <div style={{ position: "absolute", top: -2, right: 6, width: 7, height: 7, background: C.red, borderRadius: "50%", border: "1px solid #1e1e1e" }} />
+          <div style={{ width: 42, height: 42, borderRadius: "50%", background: alreadyReposted ? "#333" : C.amber, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, boxShadow: alreadyReposted ? "none" : `0 0 0 2px ${C.amber}, 0 0 10px rgba(245,166,35,0.5)` }}>🔁</div>
+          <span style={{ fontSize: 8, color: alreadyReposted ? C.grey : C.amber, fontWeight: 700 }}>{alreadyReposted ? "✓ Reposted" : "Repost"}</span>
+          {!alreadyReposted && <div style={{ position: "absolute", top: -2, right: 6, width: 7, height: 7, background: C.red, borderRadius: "50%", border: "1px solid #1e1e1e" }} />}
         </div>
         {[["🔗","Copy link","#2D5BE3"],["💬","WhatsApp",C.green],["💬","SMS","#34b7f1"],["👻","Snapchat","#fffc00"]].map(([icon, label, bg]) => (
           <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, minWidth: 52 }}>

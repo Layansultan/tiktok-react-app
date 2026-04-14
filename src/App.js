@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { FYP_VIDEOS, FOLLOWING_VIDEOS, FRIENDS_VIDEOS } from "./data/mockData";
 
+import { useAuth } from "./hooks/useAuth";
+import { useInbox } from "./hooks/useInbox";
+import { useReposts } from "./hooks/useReposts";
+import { useUserLikes } from "./hooks/useUserLikes";
+import LoginScreen from "./components/auth/LoginScreen";
+
 import StatusBar from "./components/layout/StatusBar";
 import BottomNav from "./components/layout/BottomNav";
 
@@ -13,11 +19,9 @@ import MainShareSheet from "./components/MainShareSheet";
 import RepostSheet from "./components/repost/RepostSheet";
 import RepostInfoPanel from "./components/repost/RepostInfoPanel";
 
-import DuetSheet from "./components/duet/DuetSheet";
 import DuetSetupScreen from "./components/duet/DuetSetupScreen";
 import AboutDuetsPanel from "./components/duet/AboutDuetsPanel";
 
-import StitchSheet from "./components/stitch/StitchSheet";
 import StitchClipSelector from "./components/stitch/StitchClipSelector";
 import StitchRecordScreen from "./components/stitch/StitchRecordScreen";
 import AboutStitchingPanel from "./components/stitch/AboutStitchingPanel";
@@ -30,6 +34,11 @@ import PrivacySavedSheet from "./components/profile/PrivacySavedSheet";
 import VideoFullScreen from "./components/VideoFullScreen";
 
 export default function App() {
+  const { user, signIn, logOut, loading } = useAuth();
+  const { items: inboxItems, markAllRead } = useInbox(user);
+  const { reposts, addRepost, removeRepost, hasReposted } = useReposts(user);
+  const likedVideos = useUserLikes(user);
+  const [showLogin, setShowLogin] = useState(true);
   const [tab, setTab] = useState("home");
 
   /* Share flow — lifted global so it works from any tab */
@@ -66,27 +75,43 @@ export default function App() {
       }}>
         <StatusBar />
 
+        {/* ── LOGIN SCREEN ── */}
+        {!loading && showLogin && !user && (
+          <LoginScreen
+            onSignIn={() => signIn().catch(() => {})}
+            onSkip={() => setShowLogin(false)}
+          />
+        )}
+
         {/* ── HOME / FYP ── */}
         {tab === "home" && (
           <FYPFeed
             videos={FYP_VIDEOS}
             followingVideos={FOLLOWING_VIDEOS}
             onShare={handleShare}
+            user={user}
           />
         )}
 
         {/* ── FRIENDS ── */}
         {tab === "friends" && (
-          <FriendsFeed videos={FRIENDS_VIDEOS} onShare={handleShare} />
+          <FriendsFeed videos={FRIENDS_VIDEOS} onShare={handleShare} user={user} />
         )}
 
         {/* ── INBOX ── */}
-        {tab === "inbox" && <InboxPage />}
+        {tab === "inbox" && <InboxPage items={inboxItems} onMarkAllRead={markAllRead} user={user} />}
 
         {/* ── PROFILE ── */}
         {tab === "profile" && (
           <>
-            <ProfilePage onOpenVideo={(v) => { setSelectedVideo(v); setProfileFlow("video"); }} />
+            <ProfilePage
+              user={user}
+              reposts={reposts}
+              likedVideos={likedVideos}
+              onSignIn={() => signIn().catch(() => {})}
+              onSignOut={logOut}
+              onOpenVideo={(v) => { setSelectedVideo(v); setProfileFlow("video"); }}
+            />
 
             {isFullScreenVideo && selectedVideo && (
               <>
@@ -120,10 +145,11 @@ export default function App() {
         {shareFlow === "main" && (
           <MainShareSheet
             onClose={closeAll}
-            onRepost={() => setShareFlow("repost_sheet")}
+            onRepost={() => hasReposted(currentVideo.id) ? removeRepost(currentVideo.id) : (addRepost(currentVideo), setShareFlow("reposted"))}
             onDuet={() => setShareFlow("duet_setup")}
             onStitch={() => setShareFlow("stitch_clip")}
             onInfo={() => setShareFlow("repost_info")}
+            alreadyReposted={hasReposted(currentVideo.id)}
           />
         )}
         {shareFlow === "reposted" && <RepostedToast onDone={closeAll} />}
@@ -133,7 +159,9 @@ export default function App() {
             creator={currentVideo.creator}
             onClose={closeAll}
             onInfo={() => setShareFlow("repost_info")}
-            onConfirm={() => setShareFlow("reposted")}
+            onConfirm={() => { addRepost(currentVideo); setShareFlow("reposted"); }}
+            onUndo={() => { removeRepost(currentVideo.id); closeAll(); }}
+            alreadyReposted={hasReposted(currentVideo.id)}
           />
         )}
         {(shareFlow === "duet_setup" || shareFlow === "about_duet") && (

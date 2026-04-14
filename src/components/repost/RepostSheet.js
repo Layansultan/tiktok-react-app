@@ -2,7 +2,7 @@ import { C } from "../../constants";
 import { CONTACTS } from "../../data/mockData";
 import { Sheet, Handle, Divider } from "../common";
 
-export default function RepostSheet({ onClose, onInfo, onConfirm, creator }) {
+export default function RepostSheet({ onClose, onInfo, onConfirm, onUndo, creator, alreadyReposted }) {
   return (
     <Sheet height={410}>
       <Handle />
@@ -67,7 +67,9 @@ export default function RepostSheet({ onClose, onInfo, onConfirm, creator }) {
               <span style={{ fontSize: 9.5, color: C.grey }}>@{creator.username} allows reposts · shared to your feed unchanged</span>
             </div>
           </div>
-          <div onClick={onConfirm} style={{ padding: "5px 10px", background: C.red, borderRadius: 6, fontSize: 10, fontWeight: 700, color: "white", cursor: "pointer", whiteSpace: "nowrap" }}>Repost</div>
+          <div onClick={alreadyReposted ? onUndo : onConfirm} style={{ padding: "5px 10px", background: alreadyReposted ? "#333" : C.red, borderRadius: 6, fontSize: 10, fontWeight: 700, color: alreadyReposted ? C.grey : "white", cursor: "pointer", whiteSpace: "nowrap" }}>
+            {alreadyReposted ? "✓ Reposted" : "Repost"}
+          </div>
         </div>
       </div>
 

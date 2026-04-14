@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { C } from "../../constants";
+import { useLikes } from "../../hooks/useLikes";
 
 /* Each video occupies the full visible area (phone 812 - nav 64) */
 const SLIDE_H = 748;
 
-function VideoSlide({ video, onShare }) {
-  const { creator, caption, sound, likes, comments, shares, background } = video;
+function VideoSlide({ video, onShare, user }) {
+  const { creator, caption, sound, comments, shares, background } = video;
+  const { liked, count, toggle } = useLikes(video.id, video.likes, user);
+
   return (
     <div style={{
       height: SLIDE_H, position: "relative", background,
@@ -22,9 +24,11 @@ function VideoSlide({ video, onShare }) {
           {creator.initials}
         </div>
         {/* likes */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-          <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19 }}>♥</div>
-          <span style={{ fontSize: 9, color: "white", fontWeight: 600 }}>{likes}</span>
+        <div onClick={(e) => { e.stopPropagation(); toggle(); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer" }}>
+          <div style={{ width: 38, height: 38, borderRadius: "50%", background: liked ? "rgba(254,44,85,0.25)" : "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, transition: "background 0.15s" }}>
+            <span style={{ color: liked ? "#fe2c55" : "white" }}>♥</span>
+          </div>
+          <span style={{ fontSize: 9, color: liked ? "#fe2c55" : "white", fontWeight: 600 }}>{count}</span>
         </div>
         {/* comments */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
@@ -51,7 +55,7 @@ function VideoSlide({ video, onShare }) {
   );
 }
 
-export default function FYPFeed({ videos, followingVideos, onShare }) {
+export default function FYPFeed({ videos, followingVideos, onShare, user }) {
   const [tab, setTab] = useState("foryou");
   const activeVideos = tab === "foryou" ? videos : followingVideos;
 
@@ -64,7 +68,7 @@ export default function FYPFeed({ videos, followingVideos, onShare }) {
         WebkitOverflowScrolling: "touch",
       }}>
         {activeVideos.map(video => (
-          <VideoSlide key={`${tab}-${video.id}`} video={video} onShare={onShare} />
+          <VideoSlide key={`${tab}-${video.id}`} video={video} onShare={onShare} user={user} />
         ))}
       </div>
 
