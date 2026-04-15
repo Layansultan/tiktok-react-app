@@ -35,7 +35,7 @@ import VideoFullScreen from "./components/VideoFullScreen";
 
 export default function App() {
   const { user, signIn, logOut, loading } = useAuth();
-  const { items: inboxItems, markAllRead } = useInbox(user);
+  const { items: inboxItems } = useInbox(user);
   const { reposts, addRepost, removeRepost, hasReposted } = useReposts(user);
   const likedVideos = useUserLikes(user);
   const [showLogin, setShowLogin] = useState(true);
@@ -99,7 +99,7 @@ export default function App() {
         )}
 
         {/* ── INBOX ── */}
-        {tab === "inbox" && <InboxPage items={inboxItems} onMarkAllRead={markAllRead} user={user} />}
+        {tab === "inbox" && <InboxPage items={inboxItems} />}
 
         {/* ── PROFILE ── */}
         {tab === "profile" && (

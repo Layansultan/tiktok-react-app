@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { C } from "../../constants";
 
 const TYPE_ICON = {
@@ -20,16 +21,27 @@ const TYPE_COLOR = {
   system:  C.green,
 };
 
-export default function InboxPage({ items = [], onMarkAllRead, user }) {
-  const unread = items.filter(i => !i.read);
-  const read   = items.filter(i =>  i.read);
+export default function InboxPage({ items = [] }) {
+  const [allRead, setAllRead] = useState(false);
+
+  const hasUnread = items.some(i => !i.read);
+  const displayItems = allRead ? items.map(i => ({ ...i, read: true })) : items;
+  const unread = displayItems.filter(i => !i.read);
+  const read   = displayItems.filter(i =>  i.read);
 
   return (
     <div style={{ position: "absolute", top: 0, bottom: 64, left: 0, right: 0, overflowY: "auto", background: "#000" }}>
       {/* header */}
       <div style={{ padding: "44px 16px 10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: 17, fontWeight: 700, color: "white" }}>Inbox</span>
-        <span onClick={onMarkAllRead} style={{ fontSize: 13, color: C.grey, cursor: "pointer" }}>Mark all read</span>
+        {hasUnread && (
+          <span
+            onClick={() => setAllRead(prev => !prev)}
+            style={{ fontSize: 13, color: allRead ? C.teal : C.grey, cursor: "pointer" }}
+          >
+            {allRead ? "Mark unread" : "Mark all read"}
+          </span>
+        )}
       </div>
 
       {/* unread section */}
@@ -42,14 +54,20 @@ export default function InboxPage({ items = [], onMarkAllRead, user }) {
         </>
       )}
 
-      {/* divider */}
-      <div style={{ height: 1, background: "#1a1a1a", margin: "8px 0" }} />
+      {/* divider — only between sections when both exist */}
+      {unread.length > 0 && read.length > 0 && (
+        <div style={{ height: 1, background: "#1a1a1a", margin: "8px 0" }} />
+      )}
 
       {/* earlier section */}
-      <div style={{ padding: "4px 16px 6px", fontSize: 11, fontWeight: 600, color: C.grey, letterSpacing: 0.5, textTransform: "uppercase" }}>
-        Earlier
-      </div>
-      {read.map(item => <NotifRow key={item.id} item={item} />)}
+      {read.length > 0 && (
+        <>
+          <div style={{ padding: "4px 16px 6px", fontSize: 11, fontWeight: 600, color: C.grey, letterSpacing: 0.5, textTransform: "uppercase" }}>
+            Earlier
+          </div>
+          {read.map(item => <NotifRow key={item.id} item={item} />)}
+        </>
+      )}
 
       <div style={{ height: 20 }} />
     </div>
