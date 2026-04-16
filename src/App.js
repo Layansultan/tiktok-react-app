@@ -63,10 +63,18 @@ export default function App() {
         input[type=range] { -webkit-appearance: none; height: 4px; border-radius: 2px; background: #333; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fe2c55; cursor: pointer; }
         ::-webkit-scrollbar { width: 0; height: 0; }
+        @media (max-width: 480px) {
+          .phone-shell {
+            width: 100vw !important;
+            height: 100dvh !important;
+            border-radius: 0 !important;
+            border: none !important;
+          }
+        }
       `}</style>
 
       {/* phone shell */}
-      <div style={{
+      <div className="phone-shell" style={{
         width: 375, height: 812,
         background: "#000", borderRadius: 40,
         border: "2.5px solid #2a2a2a",
