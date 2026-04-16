@@ -5,11 +5,12 @@ import { Sheet, Handle, Toggle, Btn } from "../common";
 export default function PrivacySettingsSheet({ onSave, onClose }) {
   const [audience, setAudience] = useState("friends");
   const [comments, setComments] = useState(true);
+  const [repost, setRepost] = useState(true);
   const [duet, setDuet] = useState(true);
   const [stitch, setStitch] = useState(false);
 
   return (
-    <Sheet height={510}>
+    <Sheet height={560}>
       <Handle />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px 14px" }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: "white", flex: 1, textAlign: "center" }}>Privacy settings</span>
@@ -36,8 +37,9 @@ export default function PrivacySettingsSheet({ onSave, onClose }) {
       <div style={{ margin: "0 12px 12px", background: "rgba(255,255,255,0.06)", borderRadius: 12, padding: "12px 14px" }}>
         {[
           ["Allow comments", null, comments, setComments, C.teal],
+          ["🔁 Allow reposts", "Others can share this to their followers", repost, setRepost, C.grey],
           ["👥 Allow duets", "Others can create side-by-side videos", duet, setDuet, C.blue],
-          ["✂ Allow stitches", "Others can embed a clip in their posts", stitch, setStitch, C.teal],
+          ["✂ Allow stitches", "Others can embed a clip in their posts", stitch, setStitch, C.amber],
         ].map(([label, sub, val, set, color], i, arr) => (
           <div key={label} onClick={() => set(!val)} style={{ display: "flex", alignItems: sub ? "flex-start" : "center", justifyContent: "space-between", paddingBottom: i < arr.length - 1 ? 10 : 0, marginBottom: i < arr.length - 1 ? 10 : 0, borderBottom: i < arr.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none", cursor: "pointer" }}>
             <div>
@@ -50,7 +52,7 @@ export default function PrivacySettingsSheet({ onSave, onClose }) {
       </div>
 
       <div style={{ padding: "0 12px" }}>
-        <Btn primary onClick={() => onSave({ audience, duet, stitch })}>Save settings</Btn>
+        <Btn primary onClick={() => onSave({ audience, repost, duet, stitch })}>Save settings</Btn>
       </div>
     </Sheet>
   );

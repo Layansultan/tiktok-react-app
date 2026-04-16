@@ -12,7 +12,7 @@ export default function PrivacySavedSheet({ settings, onDone, onChange }) {
         <div style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 6 }}>Preferences saved</div>
         <div style={{ fontSize: 11, color: "#aaa", lineHeight: 1.6, marginBottom: 16 }}>
           Audience: {audienceLabel}<br />
-          Duets: {settings.duet ? "On" : "Off"} · Stitches: {settings.stitch ? "On" : "Off"}<br />
+          Reposts: {settings.repost ? "On" : "Off"} · Duets: {settings.duet ? "On" : "Off"} · Stitches: {settings.stitch ? "On" : "Off"}<br />
           <span style={{ color: "#666", fontSize: 10 }}>These settings apply to this video only</span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
