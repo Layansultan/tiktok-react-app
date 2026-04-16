@@ -55,7 +55,7 @@ export default function App() {
   const isFullScreenVideo = ["video","options","privacy","saved"].includes(profileFlow);
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", background: "#0a0a0a", fontFamily: "'DM Sans', 'Inter', sans-serif" }}>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", background: "#0a0a0a", fontFamily: "'DM Sans', 'Inter', sans-serif", overflowY: "auto", padding: "20px 0" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -63,18 +63,10 @@ export default function App() {
         input[type=range] { -webkit-appearance: none; height: 4px; border-radius: 2px; background: #333; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fe2c55; cursor: pointer; }
         ::-webkit-scrollbar { width: 0; height: 0; }
-        @media (max-width: 480px) {
-          .phone-shell {
-            width: 100vw !important;
-            height: 100dvh !important;
-            border-radius: 0 !important;
-            border: none !important;
-          }
-        }
       `}</style>
 
       {/* phone shell */}
-      <div className="phone-shell" style={{
+      <div style={{
         width: 375, height: 812,
         background: "#000", borderRadius: 40,
         border: "2.5px solid #2a2a2a",
