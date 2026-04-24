@@ -1,70 +1,98 @@
-# Getting Started with Create React App
+# TikTok Consent-Aware Resharing — Prototype
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React prototype implementing consent-aware resharing features for TikTok (Repost, Duet, Stitch, and Per-Video Controls). Built as a dissertation artefact for evaluating how contextual consent cues affect user awareness during content resharing.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Prerequisites
 
-### `npm start`
+- Node.js 18+
+- A Firebase project with **Authentication** (Google sign-in) and **Realtime Database** enabled
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Setup
 
-### `npm test`
+### 1. Extract and install dependencies
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Unzip the submitted archive, then from inside the project folder run:
 
-### `npm run build`
+```bash
+npm install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 2. Configure Firebase
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Create a `.env` file in the project root with your Firebase project credentials:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+REACT_APP_FIREBASE_API_KEY=your_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
+REACT_APP_FIREBASE_MEASUREMENT_ID=your_measurement_id
+REACT_APP_FIREBASE_DATABASE_URL=https://your_project-default-rtdb.firebaseio.com
+```
 
-### `npm run eject`
+> The app works without Firebase — users can tap **Continue as guest** to browse the prototype using mock data only. Firebase is only required for Google sign-in, live like counts, and repost persistence.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Running the app
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+npm start
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Opens at [http://localhost:3000](http://localhost:3000). The app renders as a phone shell (375×812px) centred on the page.
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Running the tests
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+npm test -- --watchAll=false
+```
 
-### Code Splitting
+Runs all 114 tests offline. Firebase hooks are mocked so no `.env` file or network connection is required to run the test suite.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## Project structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```
+src/
+├── data/
+│   └── mockData.js              # Mock videos, contacts, and inbox items
+├── hooks/
+│   ├── useAuth.js               # Firebase Google authentication
+│   ├── useInbox.js              # Realtime Database inbox notifications
+│   ├── useLikes.js              # Live like counts (mock base + Firebase delta)
+│   ├── useReposts.js            # Repost persistence in Firebase
+│   └── useUserLikes.js          # Liked videos list from Firebase
+├── components/
+│   ├── feed/                    # FYP feed, video cards, reposted toast
+│   ├── friends/                 # Friends feed
+│   ├── inbox/                   # Inbox notifications page
+│   ├── profile/                 # Profile page, video grid, privacy settings
+│   ├── repost/                  # Repost sheet and info panel
+│   ├── duet/                    # Duet setup screen and about panel
+│   ├── stitch/                  # Stitch clip selector, record screen, about panel
+│   ├── auth/                    # Login screen
+│   └── layout/                  # Status bar, bottom navigation
+├── firebase.js                  # Firebase initialisation
+└── App.js                       # Global state and navigation
+```
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Features
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+| Feature | Consent cue style | Screens |
+|---|---|---|
+| Repost | Amber strip in share sheet | Share sheet → Info panel |
+| Duet | Blue info card above record button | Setup screen → About panel |
+| Stitch | Amber warning card + clip selector cue | Clip selector → Record screen → About panel |
+| Per-Video Controls | Purple pill on creator's own videos | Options sheet → Privacy settings → Confirmation |

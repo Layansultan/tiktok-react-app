@@ -1,4 +1,3 @@
-/* ─── FYP (For You) videos ───────────────────────────────────── */
 export const FYP_VIDEOS = [
   {
     id: 1,
@@ -47,7 +46,6 @@ export const FYP_VIDEOS = [
   },
 ];
 
-/* ─── Following feed (accounts you follow) ───────────────────── */
 export const FOLLOWING_VIDEOS = [
   {
     id: 11,
@@ -78,7 +76,6 @@ export const FOLLOWING_VIDEOS = [
   },
 ];
 
-/* ─── Friends feed (mutual follows) ─────────────────────────── */
 export const FRIENDS_VIDEOS = [
   {
     id: 21,
@@ -118,7 +115,6 @@ export const FRIENDS_VIDEOS = [
   },
 ];
 
-/* ─── Share sheet contacts ───────────────────────────────────── */
 export const CONTACTS = [
   { id: 1, name: "Sarah K.",    type: "user",  initials: "SK", color: "#667eea" },
   { id: 2, name: "Study Group", type: "group" },
@@ -129,7 +125,6 @@ export const CONTACTS = [
   { id: 7, name: "Priya",       type: "user",  initials: "P",  color: "#9b59b6" },
 ];
 
-/* ─── Inbox notifications ────────────────────────────────────── */
 export const INBOX_ITEMS = [
   {
     id: 1, type: "follow",
@@ -186,7 +181,6 @@ export const INBOX_ITEMS = [
   },
 ];
 
-/* ─── Profile videos (your own) ──────────────────────────────── */
 export const PROFILE_VIDEOS = [
   { id: 1, thumb: "linear-gradient(135deg,#1a1a2e,#0f3460)", title: "Travel vlog pt.1",  views: "2.1M",  likes: "180K", comments: "4.2K" },
   { id: 2, thumb: "linear-gradient(135deg,#1a0e2e,#3d1459)", title: "Day in my life",    views: "890K",  likes: "72K",  comments: "1.8K" },

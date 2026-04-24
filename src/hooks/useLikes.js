@@ -22,7 +22,7 @@ export function formatCount(n) {
 export function useLikes(videoId, initialCount, user) {
   const base = parseCount(initialCount);
   const [liked, setLiked] = useState(false);
-  const [delta, setDelta] = useState(0); // how many Firebase likes exist for this video
+  const [delta, setDelta] = useState(0);
 
   useEffect(() => {
     if (!user || !videoId) return;

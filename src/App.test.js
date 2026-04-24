@@ -2,8 +2,6 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 
-// ─── Firebase mocks ────────────────────────────────────────────
-// Hooks that talk to Firebase are mocked so tests run offline.
 jest.mock('./hooks/useAuth', () => ({
   useAuth: () => ({ user: null, signIn: jest.fn(), logOut: jest.fn(), loading: false }),
 }));
@@ -27,31 +25,25 @@ jest.mock('./hooks/useLikes', () => ({
   formatCount: (n) => (typeof n === 'string' ? n : String(n)),
 }));
 
-// ─── helpers ──────────────────────────────────────────────────
 const tap = (el) => userEvent.click(el);
 
-/* Dismiss the login screen (user: null → guest mode) */
 const skipLogin = () => tap(screen.getByText('Continue as guest'));
 
-/* Open the share sheet from the FYP action bar */
 const openShareSheet = () => {
   tap(screen.getAllByText('↗')[0]);
 };
 
-/* Navigate to profile and open the first video */
 const openProfileVideo = () => {
   tap(screen.getByText('Profile'));
   tap(screen.getByText('▶ 2.1M'));
 };
 
-/* Navigate to profile → video → options → privacy */
 const openPrivacySettings = () => {
   openProfileVideo();
   tap(screen.getByText('•••'));
   tap(screen.getAllByText('Privacy')[0]);
 };
 
-// ─────────────────────────────────────────────────────────────
 describe('App — smoke', () => {
   it('renders without crashing', () => {
     render(<App />);

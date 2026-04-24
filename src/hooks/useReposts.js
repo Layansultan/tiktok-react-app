@@ -3,7 +3,7 @@ import { ref, set, remove, onValue } from "firebase/database";
 import { db } from "../firebase";
 
 export function useReposts(user) {
-  const [reposts, setReposts] = useState([]); // array of video objects
+  const [reposts, setReposts] = useState([]);
 
   useEffect(() => {
     if (!user) { setReposts([]); return; }

@@ -41,13 +41,11 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(true);
   const [tab, setTab] = useState("home");
 
-  /* Share flow — lifted global so it works from any tab */
   const [currentVideo, setCurrentVideo] = useState(FYP_VIDEOS[0]);
   const [shareFlow, setShareFlow] = useState(null);
   const handleShare = (video) => { setCurrentVideo(video); setShareFlow("main"); };
   const closeAll = () => setShareFlow(null);
 
-  /* Profile flow — null | "video" | "options" | "privacy" | "saved" */
   const [profileFlow, setProfileFlow] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [savedSettings, setSavedSettings] = useState(null);
@@ -65,7 +63,6 @@ export default function App() {
         ::-webkit-scrollbar { width: 0; height: 0; }
       `}</style>
 
-      {/* phone shell */}
       <div style={{
         width: 375, height: 812,
         background: "#000", borderRadius: 40,
@@ -75,7 +72,6 @@ export default function App() {
       }}>
         <StatusBar />
 
-        {/* ── LOGIN SCREEN ── */}
         {!loading && showLogin && !user && (
           <LoginScreen
             onSignIn={() => signIn().catch(() => {})}
@@ -83,7 +79,6 @@ export default function App() {
           />
         )}
 
-        {/* ── HOME / FYP ── */}
         {tab === "home" && (
           <FYPFeed
             videos={FYP_VIDEOS}
@@ -93,15 +88,12 @@ export default function App() {
           />
         )}
 
-        {/* ── FRIENDS ── */}
         {tab === "friends" && (
           <FriendsFeed videos={FRIENDS_VIDEOS} onShare={handleShare} user={user} />
         )}
 
-        {/* ── INBOX ── */}
         {tab === "inbox" && <InboxPage items={inboxItems} />}
 
-        {/* ── PROFILE ── */}
         {tab === "profile" && (
           <>
             <ProfilePage
@@ -138,7 +130,6 @@ export default function App() {
           </>
         )}
 
-        {/* ── GLOBAL SHARE FLOW (works from home + friends tabs) ── */}
         {shareFlow && (
           <div data-testid="share-backdrop" onClick={closeAll} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 28 }} />
         )}
@@ -186,7 +177,6 @@ export default function App() {
           </>
         )}
 
-        {/* bottom nav — hidden when full-screen video is open */}
         {!isFullScreenVideo && (
           <BottomNav active={tab} onNav={(k) => { setTab(k); closeAll(); setProfileFlow(null); setSelectedVideo(null); }} />
         )}
